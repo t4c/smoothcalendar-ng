@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.CleanCalendar" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

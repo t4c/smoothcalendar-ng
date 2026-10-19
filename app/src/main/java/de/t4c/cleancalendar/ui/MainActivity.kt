@@ -1,7 +1,16 @@
 package de.t4c.cleancalendar.ui
 
 import android.Manifest
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import de.t4c.cleancalendar.widget.CleanCalendarWidgetReceiver
 import android.content.pm.PackageManager
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -15,18 +24,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.glance.appwidget.updateAll
@@ -56,7 +69,17 @@ class MainActivity : ComponentActivity() {
         val settingsRepo = SettingsRepository(applicationContext)
 
         setContent {
-            MaterialTheme {
+            val darkTheme = isSystemInDarkTheme()
+            val colorScheme = when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                    val context = applicationContext
+                    if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+                }
+                darkTheme -> darkColorScheme()
+                else -> lightColorScheme()
+            }
+
+            MaterialTheme(colorScheme = colorScheme) {
                 val settings by settingsRepo.settingsFlow.collectAsState(initial = WidgetSettings())
                 val coroutineScope = rememberCoroutineScope()
 
@@ -83,7 +106,11 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text("CleanCalendar Settings") }
+                            title = { Text("CleanCalendar Settings") },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
                         )
                     }
                 ) { innerPadding ->
@@ -109,34 +136,44 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // Max items
-                        Text("Visible Events: ${settings.maxItems}", style = MaterialTheme.typography.titleMedium)
-                        Slider(
-                            value = settings.maxItems.toFloat(),
-                            onValueChange = { newValue ->
-                                val updated = settings.copy(maxItems = newValue.toInt())
-                                coroutineScope.launch {
-                                    settingsRepo.updateSettings(updated)
-                                    CleanCalendarWidget().updateAll(applicationContext)
+                        // Max items (Number Input)
+                        var maxItemsText by remember(settings.maxItems) { mutableStateOf(settings.maxItems.toString()) }
+                        SettingNumberInput(
+                            title = "Visible Events",
+                            subtitle = "Number of events to display (1 - 50)",
+                            value = maxItemsText,
+                            onValueChange = { input ->
+                                val filtered = input.filter { it.isDigit() }
+                                maxItemsText = filtered
+                                val parsed = filtered.toIntOrNull()
+                                if (parsed != null && parsed in 1..50) {
+                                    val updated = settings.copy(maxItems = parsed)
+                                    coroutineScope.launch {
+                                        settingsRepo.updateSettings(updated)
+                                        CleanCalendarWidget().updateAll(applicationContext)
+                                    }
                                 }
-                            },
-                            valueRange = 1f..10f,
-                            steps = 8
+                            }
                         )
 
-                        // Font size
-                        Text("Font Size: ${settings.fontSizeSp} sp", style = MaterialTheme.typography.titleMedium)
-                        Slider(
-                            value = settings.fontSizeSp.toFloat(),
-                            onValueChange = { newValue ->
-                                val updated = settings.copy(fontSizeSp = newValue.toInt())
-                                coroutineScope.launch {
-                                    settingsRepo.updateSettings(updated)
-                                    CleanCalendarWidget().updateAll(applicationContext)
+                        // Font size (Number Input)
+                        var fontSizeText by remember(settings.fontSizeSp) { mutableStateOf(settings.fontSizeSp.toString()) }
+                        SettingNumberInput(
+                            title = "Font Size",
+                            subtitle = "Event text size in sp (8 - 36)",
+                            value = fontSizeText,
+                            onValueChange = { input ->
+                                val filtered = input.filter { it.isDigit() }
+                                fontSizeText = filtered
+                                val parsed = filtered.toIntOrNull()
+                                if (parsed != null && parsed in 8..36) {
+                                    val updated = settings.copy(fontSizeSp = parsed)
+                                    coroutineScope.launch {
+                                        settingsRepo.updateSettings(updated)
+                                        CleanCalendarWidget().updateAll(applicationContext)
+                                    }
                                 }
-                            },
-                            valueRange = 10f..22f,
-                            steps = 11
+                            }
                         )
 
                         HorizontalDivider()
@@ -224,10 +261,52 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         )
+
+                        HorizontalDivider()
+
+                        // Add to Homescreen Button
+                        val appWidgetManager = AppWidgetManager.getInstance(this@MainActivity)
+                        if (appWidgetManager.isRequestPinAppWidgetSupported) {
+                            Button(
+                                onClick = {
+                                    val myProvider = ComponentName(this@MainActivity, CleanCalendarWidgetReceiver::class.java)
+                                    appWidgetManager.requestPinAppWidget(myProvider, null, null)
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Add Widget to Homescreen")
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SettingNumberInput(
+    title: String,
+    subtitle: String,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall)
+        }
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.width(84.dp)
+        )
     }
 }
 

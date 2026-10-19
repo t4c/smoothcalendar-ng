@@ -1,7 +1,10 @@
 *.iml
 .gradle/
 build/
-app/build/
+app/build
+/dist
+*.apk
+*.ap_/
 local.properties
 /.idea/
 .DS_Store

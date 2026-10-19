@@ -21,6 +21,7 @@ class SettingsRepository(private val context: Context) {
 
     private object PreferencesKeys {
         val BACKGROUND_ALPHA = intPreferencesKey("background_alpha")
+        val BACKGROUND_COLOR_HEX = longPreferencesKey("background_color_hex")
         val TEXT_COLOR_HEX = longPreferencesKey("text_color_hex")
         val FONT_SIZE_SP = intPreferencesKey("font_size_sp")
         val SHOW_SHADOW = booleanPreferencesKey("show_shadow")
@@ -42,6 +43,7 @@ class SettingsRepository(private val context: Context) {
         val ignoredSet = prefs[PreferencesKeys.IGNORED_CALENDARS]?.mapNotNull { it.toLongOrNull() }?.toSet() ?: emptySet()
         WidgetSettings(
             backgroundAlpha = prefs[PreferencesKeys.BACKGROUND_ALPHA] ?: 0,
+            backgroundColorHex = prefs[PreferencesKeys.BACKGROUND_COLOR_HEX] ?: 0x00000000L,
             textColorHex = prefs[PreferencesKeys.TEXT_COLOR_HEX] ?: 0xFFFFFFFFL,
             fontSizeSp = prefs[PreferencesKeys.FONT_SIZE_SP] ?: 14,
             showShadow = prefs[PreferencesKeys.SHOW_SHADOW] ?: true,
@@ -63,6 +65,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun updateSettings(settings: WidgetSettings) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.BACKGROUND_ALPHA] = settings.backgroundAlpha
+            prefs[PreferencesKeys.BACKGROUND_COLOR_HEX] = settings.backgroundColorHex
             prefs[PreferencesKeys.TEXT_COLOR_HEX] = settings.textColorHex
             prefs[PreferencesKeys.FONT_SIZE_SP] = settings.fontSizeSp
             prefs[PreferencesKeys.SHOW_SHADOW] = settings.showShadow

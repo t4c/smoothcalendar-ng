@@ -16,6 +16,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -151,6 +153,68 @@ class MainActivity : ComponentActivity() {
 
                         // Section 1: Appearance & Typography
                         SettingsSection(title = "Appearance") {
+                            // Text Color Palette Picker
+                            val textColorPresets = listOf(
+                                "White" to 0xFFFFFFFFL,
+                                "Pink / Rose" to 0xFFFF69B4L,
+                                "Pastel Pink" to 0xFFFFB6C1L,
+                                "Black" to 0xFF000000L,
+                                "Dark Gray" to 0xFF212121L,
+                                "Salbei Green" to 0xFFA7BEADL,
+                                "Cyan / Mint" to 0xFF80CBC4L,
+                                "Sunny Gold" to 0xFFFFD54FL,
+                                "Lilac / Lavender" to 0xFFCE93D8L
+                            )
+                            SettingColorPicker(
+                                title = "Text Color",
+                                subtitle = "Primary font color for events and dates",
+                                selectedColorHex = settings.textColorHex,
+                                presets = textColorPresets,
+                                onColorSelected = { newHex ->
+                                    val updated = settings.copy(textColorHex = newHex)
+                                    coroutineScope.launch {
+                                        settingsRepo.updateSettings(updated)
+                                        CleanCalendarWidget().updateAll(applicationContext)
+                                    }
+                                }
+                            )
+
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+
+                            // Background Color Palette Picker
+                            val bgColorPresets = listOf(
+                                "Transparent" to 0x00000000L,
+                                "Translucent Black (30%)" to 0x4D000000L,
+                                "Translucent Black (60%)" to 0x99000000L,
+                                "Solid Dark" to 0xFF1E1E1EL,
+                                "Translucent White (30%)" to 0x4DFFFFFFL,
+                                "Translucent White (60%)" to 0x99FFFFFFL,
+                                "Solid White" to 0xFFFFFFFFL,
+                                "Soft Salbei" to 0x80A7BEADL,
+                                "Dark Charcoal" to 0xCC121212L
+                            )
+                            SettingColorPicker(
+                                title = "Widget Background",
+                                subtitle = "Container background color and transparency",
+                                selectedColorHex = settings.backgroundColorHex,
+                                presets = bgColorPresets,
+                                onColorSelected = { newHex ->
+                                    val updated = settings.copy(backgroundColorHex = newHex)
+                                    coroutineScope.launch {
+                                        settingsRepo.updateSettings(updated)
+                                        CleanCalendarWidget().updateAll(applicationContext)
+                                    }
+                                }
+                            )
+
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+
                             var maxItemsText by remember(settings.maxItems) { mutableStateOf(settings.maxItems.toString()) }
                             SettingNumberInput(
                                 title = "Visible Events",
@@ -419,5 +483,74 @@ fun SettingToggle(
             checked = checked,
             onCheckedChange = onCheckedChange
         )
+    }
+}
+
+@Composable
+fun SettingColorPicker(
+    title: String,
+    subtitle: String,
+    selectedColorHex: Long,
+    presets: List<Pair<String, Long>>,
+    onColorSelected: (Long) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(modifier = Modifier.height(10.dp))
+
+        androidx.compose.foundation.lazy.LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(presets.size) { i ->
+                val (name, colorLong) = presets[i]
+                val isSelected = selectedColorHex == colorLong
+                val color = androidx.compose.ui.graphics.Color(colorLong)
+                val isTransparent = (colorLong and 0xFF000000L) == 0L
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable { onColorSelected(colorLong) }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(42.dp)
+                            .height(42.dp)
+                            .then(
+                                if (isSelected) {
+                                    Modifier.border(3.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                                } else {
+                                    Modifier.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                                }
+                            )
+                            .padding(3.dp)
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(9.dp),
+                            color = if (isTransparent) androidx.compose.ui.graphics.Color.Transparent else color,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            if (isTransparent) {
+                                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                    Text("Ø", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = name.split(" ").first(),
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
     }
 }

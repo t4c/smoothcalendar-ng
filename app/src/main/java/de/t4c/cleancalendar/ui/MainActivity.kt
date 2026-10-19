@@ -19,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -201,6 +202,7 @@ class MainActivity : ComponentActivity() {
                                 subtitle = "Container background color and transparency",
                                 selectedColorHex = settings.backgroundColorHex,
                                 presets = bgColorPresets,
+                                allowAlpha = true,
                                 onColorSelected = { newHex ->
                                     val updated = settings.copy(backgroundColorHex = newHex)
                                     coroutineScope.launch {
@@ -492,16 +494,44 @@ fun SettingColorPicker(
     subtitle: String,
     selectedColorHex: Long,
     presets: List<Pair<String, Long>>,
+    allowAlpha: Boolean = false,
     onColorSelected: (Long) -> Unit
 ) {
+    var showCustomDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            // Custom Color Button / Preview
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = androidx.compose.ui.graphics.Color(selectedColorHex),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
+                modifier = Modifier
+                    .width(44.dp)
+                    .height(44.dp)
+                    .clickable { showCustomDialog = true }
+            ) {
+                if ((selectedColorHex and 0xFF000000L) == 0L) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        Text("Ø", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         androidx.compose.foundation.lazy.LazyRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -549,6 +579,201 @@ fun SettingColorPicker(
                         maxLines = 1,
                         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+
+            // Button to open full color dialog in the preset row
+            item {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable { showCustomDialog = true }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(42.dp)
+                            .height(42.dp)
+                            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                            .padding(3.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("+", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Custom",
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+    }
+
+    if (showCustomDialog) {
+        FullColorPickerDialog(
+            initialColorHex = selectedColorHex,
+            allowAlpha = allowAlpha,
+            onDismiss = { showCustomDialog = false },
+            onColorConfirmed = { chosenHex ->
+                onColorSelected(chosenHex)
+                showCustomDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun FullColorPickerDialog(
+    initialColorHex: Long,
+    allowAlpha: Boolean,
+    onDismiss: () -> Unit,
+    onColorConfirmed: (Long) -> Unit
+) {
+    var a by remember { mutableStateOf(((initialColorHex shr 24) and 0xFF).toFloat() / 255f) }
+    var r by remember { mutableStateOf(((initialColorHex shr 16) and 0xFF).toFloat() / 255f) }
+    var g by remember { mutableStateOf(((initialColorHex shr 8) and 0xFF).toFloat() / 255f) }
+    var b by remember { mutableStateOf((initialColorHex and 0xFF).toFloat() / 255f) }
+
+    val currentHexLong = remember(a, r, g, b, allowAlpha) {
+        val alphaInt = if (allowAlpha) (a * 255).toInt() and 0xFF else 0xFF
+        val rInt = (r * 255).toInt() and 0xFF
+        val gInt = (g * 255).toInt() and 0xFF
+        val bInt = (b * 255).toInt() and 0xFF
+        ((alphaInt.toLong() shl 24) or (rInt.toLong() shl 16) or (gInt.toLong() shl 8) or bInt.toLong()) and 0xFFFFFFFFL
+    }
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text("Color Palette", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+
+                // Large Preview & Hex display
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier.size(60.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = androidx.compose.ui.graphics.Color(currentHexLong),
+                        border = androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.outline)
+                    ) {}
+
+                    Column {
+                        Text(
+                            text = String.format("#%08X", currentHexLong),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "RGB: ${(r * 255).toInt()}, ${(g * 255).toInt()}, ${(b * 255).toInt()}" +
+                                    if (allowAlpha) " (A: ${(a * 100).toInt()}%)" else "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Quick spectrum chips
+                val spectrum = listOf(
+                    0xFFF44336L, 0xFFE91E63L, 0xFF9C27B0L, 0xFF673AB7L, 0xFF3F51B5L,
+                    0xFF2196F3L, 0xFF03A9F4L, 0xFF00BCD4L, 0xFF009688L, 0xFF4CAF50L,
+                    0xFF8BC34AL, 0xFFCDDC39L, 0xFFFFEB3BL, 0xFFFFC107L, 0xFFFF9800L,
+                    0xFFFF5722L, 0xFF795548L, 0xFF9E9E9EL, 0xFF607D8BL, 0xFFFFFFFFL, 0xFF000000L
+                )
+
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(spectrum.size) { idx ->
+                        val hex = spectrum[idx]
+                        Surface(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clickable {
+                                    r = ((hex shr 16) and 0xFF).toFloat() / 255f
+                                    g = ((hex shr 8) and 0xFF).toFloat() / 255f
+                                    b = (hex and 0xFF).toFloat() / 255f
+                                },
+                            shape = RoundedCornerShape(8.dp),
+                            color = androidx.compose.ui.graphics.Color(hex),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                        ) {}
+                    }
+                }
+
+                // Sliders
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Red Slider
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("R", fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color.Red, modifier = Modifier.width(24.dp))
+                        androidx.compose.material3.Slider(
+                            value = r,
+                            onValueChange = { r = it },
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text("${(r * 255).toInt()}", modifier = Modifier.width(36.dp), textAlign = TextAlign.End, style = MaterialTheme.typography.bodySmall)
+                    }
+
+                    // Green Slider
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("G", fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color.Green, modifier = Modifier.width(24.dp))
+                        androidx.compose.material3.Slider(
+                            value = g,
+                            onValueChange = { g = it },
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text("${(g * 255).toInt()}", modifier = Modifier.width(36.dp), textAlign = TextAlign.End, style = MaterialTheme.typography.bodySmall)
+                    }
+
+                    // Blue Slider
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("B", fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color.Blue, modifier = Modifier.width(24.dp))
+                        androidx.compose.material3.Slider(
+                            value = b,
+                            onValueChange = { b = it },
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text("${(b * 255).toInt()}", modifier = Modifier.width(36.dp), textAlign = TextAlign.End, style = MaterialTheme.typography.bodySmall)
+                    }
+
+                    // Alpha Slider (if permitted)
+                    if (allowAlpha) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("A", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.width(24.dp))
+                            androidx.compose.material3.Slider(
+                                value = a,
+                                onValueChange = { a = it },
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text("${(a * 100).toInt()}%", modifier = Modifier.width(36.dp), textAlign = TextAlign.End, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+
+                // Actions
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    androidx.compose.material3.TextButton(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { onColorConfirmed(currentHexLong) }) {
+                        Text("Apply")
+                    }
                 }
             }
         }

@@ -3,6 +3,10 @@ package de.t4c.cleancalendar.ui
 import android.Manifest
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import de.t4c.cleancalendar.BuildConfig
 import de.t4c.cleancalendar.widget.CleanCalendarWidgetReceiver
 import android.content.pm.PackageManager
 import android.os.Build
@@ -423,6 +427,49 @@ class MainActivity : ComponentActivity() {
                                 shape = RoundedCornerShape(16.dp)
                             ) {
                                 Text("Add Widget to Homescreen", style = MaterialTheme.typography.titleMedium)
+                            }
+                        }
+
+                        // Minimal About & Support Footer
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            val context = LocalContext.current
+                            Text(
+                                text = "SmoothCalendar NG v${BuildConfig.VERSION_NAME}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "GitHub",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.clickable {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/t4c/smoothcalendar-ng"))
+                                        context.startActivity(intent)
+                                    }
+                                )
+                                Text(
+                                    text = "•",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                                )
+                                Text(
+                                    text = "Buy me a coffee ☕",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.clickable {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://buymeacoffee.com/t4c2"))
+                                        context.startActivity(intent)
+                                    }
+                                )
                             }
                         }
                     }

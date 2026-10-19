@@ -26,6 +26,6 @@ data class WidgetSettings(
     val displayDateOnce: Boolean = false,
     val showEndTime: Boolean = false,
     val useCalendarColors: Boolean = false,
-    val dateFormatPattern: String = "d. MMM",
+    val dateFormatPattern: String = "d MMM",
     val timeFormatPattern: String = "HH:mm"
 )

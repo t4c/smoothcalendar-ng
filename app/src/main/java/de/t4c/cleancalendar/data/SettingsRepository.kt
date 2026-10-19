@@ -56,7 +56,7 @@ class SettingsRepository(private val context: Context) {
             displayDateOnce = prefs[PreferencesKeys.DISPLAY_DATE_ONCE] ?: false,
             showEndTime = prefs[PreferencesKeys.SHOW_END_TIME] ?: false,
             useCalendarColors = prefs[PreferencesKeys.USE_CALENDAR_COLORS] ?: false,
-            dateFormatPattern = prefs[PreferencesKeys.DATE_FORMAT] ?: "d. MMM",
+            dateFormatPattern = prefs[PreferencesKeys.DATE_FORMAT]?.replace(".", "") ?: "d MMM",
             timeFormatPattern = prefs[PreferencesKeys.TIME_FORMAT] ?: "HH:mm",
             ignoredCalendarIds = ignoredSet
         )

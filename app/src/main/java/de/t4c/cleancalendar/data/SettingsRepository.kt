@@ -45,7 +45,7 @@ class SettingsRepository(private val context: Context) {
             backgroundAlpha = prefs[PreferencesKeys.BACKGROUND_ALPHA] ?: 0,
             backgroundColorHex = prefs[PreferencesKeys.BACKGROUND_COLOR_HEX] ?: 0x00000000L,
             textColorHex = prefs[PreferencesKeys.TEXT_COLOR_HEX] ?: 0xFFFFFFFFL,
-            fontSizeSp = prefs[PreferencesKeys.FONT_SIZE_SP] ?: 14,
+            fontSizeSp = prefs[PreferencesKeys.FONT_SIZE_SP] ?: 12,
             showShadow = prefs[PreferencesKeys.SHOW_SHADOW] ?: true,
             maxItems = prefs[PreferencesKeys.MAX_ITEMS] ?: 4,
             daysSpan = prefs[PreferencesKeys.DAYS_SPAN] ?: 14,

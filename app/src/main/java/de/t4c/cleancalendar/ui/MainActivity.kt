@@ -117,6 +117,23 @@ class MainActivity : ComponentActivity() {
                     topBar = {
                         TopAppBar(
                             title = { Text("CleanCalendar Settings") },
+                            actions = {
+                                Button(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            CleanCalendarWidget().updateAll(applicationContext)
+                                            android.widget.Toast.makeText(
+                                                applicationContext,
+                                                "Widget refreshed & settings applied!",
+                                                android.widget.Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    },
+                                    modifier = Modifier.padding(end = 8.dp)
+                                ) {
+                                    Text("Reload")
+                                }
+                            },
                             colors = TopAppBarDefaults.topAppBarColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                                 titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -239,7 +256,7 @@ class MainActivity : ComponentActivity() {
                                 subtitle = "Text size in sp (8 - 36)",
                                 value = fontSizeText,
                                 onValueChange = { input ->
-                                    val filtered = input.filter { it.isDigit() }
+                                    val filtered = input.filter { it.isDigit() }.take(2)
                                     fontSizeText = filtered
                                     val parsed = filtered.toIntOrNull()
                                     if (parsed != null && parsed in 8..36) {
@@ -251,6 +268,43 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             )
+
+                            // Quick Font Size Buttons (8, 10, 11, 12, 14, 16)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                listOf(8, 10, 11, 12, 14, 16).forEach { size ->
+                                    val isSelected = settings.fontSizeSp == size
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                        border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(36.dp)
+                                            .clickable {
+                                                fontSizeText = size.toString()
+                                                val updated = settings.copy(fontSizeSp = size)
+                                                coroutineScope.launch {
+                                                    settingsRepo.updateSettings(updated)
+                                                    CleanCalendarWidget().updateAll(applicationContext)
+                                                }
+                                            }
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                            Text(
+                                                text = "${size}sp",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         // Section 2: Display & Grouping

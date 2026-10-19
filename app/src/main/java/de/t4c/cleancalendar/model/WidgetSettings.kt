@@ -9,7 +9,7 @@ data class WidgetSettings(
     val backgroundAlpha: Int = 0, // 0 = 100% transparent by default
     val backgroundColorHex: Long = 0x00000000L,
     val textColorHex: Long = 0xFFFFFFFFL, // Crisp White
-    val fontSizeSp: Int = 14,
+    val fontSizeSp: Int = 12,
     val showShadow: Boolean = true, // Text shadow for readability on light wallpapers
     val paddingDp: Int = 8,
 

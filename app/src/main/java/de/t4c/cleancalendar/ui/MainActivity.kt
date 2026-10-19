@@ -154,17 +154,13 @@ class MainActivity : ComponentActivity() {
 
                         // Section 1: Appearance & Typography
                         SettingsSection(title = "Appearance") {
-                            // Text Color Palette Picker
+                            // Text Color Palette Picker (Top 5 presets + Custom)
                             val textColorPresets = listOf(
                                 "White" to 0xFFFFFFFFL,
-                                "Pink / Rose" to 0xFFFF69B4L,
-                                "Pastel Pink" to 0xFFFFB6C1L,
                                 "Black" to 0xFF000000L,
-                                "Dark Gray" to 0xFF212121L,
-                                "Salbei Green" to 0xFFA7BEADL,
-                                "Cyan / Mint" to 0xFF80CBC4L,
-                                "Sunny Gold" to 0xFFFFD54FL,
-                                "Lilac / Lavender" to 0xFFCE93D8L
+                                "Dark Gray" to 0xFF333333L,
+                                "Salbei" to 0xFFA7BEADL,
+                                "Gold" to 0xFFFFD54FL
                             )
                             SettingColorPicker(
                                 title = "Text Color",
@@ -185,17 +181,13 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.padding(horizontal = 16.dp)
                             )
 
-                            // Background Color Palette Picker
+                            // Background Color Palette Picker (Top 5 presets + Custom)
                             val bgColorPresets = listOf(
                                 "Transparent" to 0x00000000L,
-                                "Translucent Black (30%)" to 0x4D000000L,
-                                "Translucent Black (60%)" to 0x99000000L,
-                                "Solid Dark" to 0xFF1E1E1EL,
-                                "Translucent White (30%)" to 0x4DFFFFFFL,
-                                "Translucent White (60%)" to 0x99FFFFFFL,
-                                "Solid White" to 0xFFFFFFFFL,
-                                "Soft Salbei" to 0x80A7BEADL,
-                                "Dark Charcoal" to 0xCC121212L
+                                "Black (30%)" to 0x4D000000L,
+                                "Black (60%)" to 0x99000000L,
+                                "White (30%)" to 0x4DFFFFFFL,
+                                "Solid Dark" to 0xFF1E1E1EL
                             )
                             SettingColorPicker(
                                 title = "Widget Background",
@@ -533,12 +525,12 @@ fun SettingColorPicker(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        androidx.compose.foundation.lazy.LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(presets.size) { i ->
-                val (name, colorLong) = presets[i]
+            presets.forEach { (name, colorLong) ->
                 val isSelected = selectedColorHex == colorLong
                 val color = androidx.compose.ui.graphics.Color(colorLong)
                 val isTransparent = (colorLong and 0xFF000000L) == 0L
@@ -582,30 +574,28 @@ fun SettingColorPicker(
                 }
             }
 
-            // Button to open full color dialog in the preset row
-            item {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.clickable { showCustomDialog = true }
+            // Exactly 6th item: The '+' Custom Button
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.clickable { showCustomDialog = true }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(42.dp)
+                        .height(42.dp)
+                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                        .padding(3.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .width(42.dp)
-                            .height(42.dp)
-                            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
-                            .padding(3.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("+", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Custom",
-                        style = MaterialTheme.typography.labelSmall,
-                        maxLines = 1,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Text("+", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Custom",
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }

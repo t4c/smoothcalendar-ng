@@ -155,10 +155,7 @@ class CleanCalendarWidget : GlanceAppWidget() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
 
-                if (index > 0) {
-                    Spacer(modifier = GlanceModifier.height(4.dp))
-                }
-
+                // Row for event
                 Row(
                     modifier = GlanceModifier
                         .fillMaxWidth()
@@ -166,33 +163,46 @@ class CleanCalendarWidget : GlanceAppWidget() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Date Column
-                    if (showDate) {
-                        Text(
-                            text = dateLabel,
-                            style = TextStyle(
-                                color = ColorProvider(rowTextColor),
-                                fontSize = settings.fontSizeSp.sp,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            maxLines = 1
-                        )
-                    } else {
-                        // Empty space alignment placeholder if grouping
-                        Spacer(modifier = GlanceModifier.width(16.dp))
-                    }
+                    Text(
+                        text = dateLabel,
+                        style = TextStyle(
+                            color = ColorProvider(rowTextColor),
+                            fontSize = settings.fontSizeSp.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        maxLines = 1
+                    )
 
                     Spacer(modifier = GlanceModifier.width(8.dp))
 
-                    // Time Column (or Event Title inline with time)
-                    val fullTitle = if (timeLabel.isNotEmpty()) {
-                        "$timeLabel  ${event.title}"
+                    // Time or Blank alignment spacer for all-day events
+                    if (timeLabel.isNotEmpty()) {
+                        Text(
+                            text = timeLabel,
+                            style = TextStyle(
+                                color = ColorProvider(rowTextColor),
+                                fontSize = settings.fontSizeSp.sp
+                            ),
+                            maxLines = 1
+                        )
+                        Spacer(modifier = GlanceModifier.width(8.dp))
                     } else {
-                        event.title
+                        // All-day event: Reserve exact space corresponding to typical time format (e.g. "00:00")
+                        val timeSample = timeFormat.format(Date(event.startTime))
+                        Text(
+                            text = " ".repeat(timeSample.length + 2),
+                            style = TextStyle(
+                                color = ColorProvider(Color.Transparent),
+                                fontSize = settings.fontSizeSp.sp
+                            ),
+                            maxLines = 1
+                        )
+                        Spacer(modifier = GlanceModifier.width(8.dp))
                     }
 
                     // Event Title
                     Text(
-                        text = fullTitle,
+                        text = event.title,
                         style = TextStyle(
                             color = ColorProvider(rowTextColor),
                             fontSize = settings.fontSizeSp.sp

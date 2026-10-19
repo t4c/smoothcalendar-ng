@@ -58,6 +58,21 @@ CleanCalendar is architected with modern Android engineering best practices:
 * JDK 17 or higher
 * Android SDK Platform 35 (`compileSdk = 35`, `minSdk = 26`)
 
+---
+
+## Installation & Updates
+
+### Obtainium (Recommended)
+CleanCalendar is built to work seamlessly with [Obtainium](https://github.com/ImranR98/Obtainium) for automatic background updates directly from GitHub Releases:
+1. Open **Obtainium** on your Android device.
+2. Tap **Add App** and paste: `https://github.com/t4c/cleancalendar`
+3. Tap **Add** – Obtainium tracks new release tags and installs APK updates directly.
+
+### Manual Download
+Download the latest `CleanCalendar-v*.apk` directly from the [GitHub Releases](https://github.com/t4c/cleancalendar/releases) page.
+
+---
+
 ### Build Commands
 
 ```bash

@@ -50,11 +50,11 @@ class SettingsRepository(private val context: Context) {
             hideAllDay = prefs[PreferencesKeys.HIDE_ALL_DAY] ?: false,
             hideMultiDay = prefs[PreferencesKeys.HIDE_MULTI_DAY] ?: false,
             removeOnEnd = prefs[PreferencesKeys.REMOVE_ON_END] ?: true,
-            showTodayTomorrow = prefs[PreferencesKeys.SHOW_TODAY_TOMORROW] ?: true,
-            displayDateOnce = prefs[PreferencesKeys.DISPLAY_DATE_ONCE] ?: true,
+            showTodayTomorrow = prefs[PreferencesKeys.SHOW_TODAY_TOMORROW] ?: false,
+            displayDateOnce = prefs[PreferencesKeys.DISPLAY_DATE_ONCE] ?: false,
             showEndTime = prefs[PreferencesKeys.SHOW_END_TIME] ?: false,
             useCalendarColors = prefs[PreferencesKeys.USE_CALENDAR_COLORS] ?: false,
-            dateFormatPattern = prefs[PreferencesKeys.DATE_FORMAT] ?: "EEE, d. MMM",
+            dateFormatPattern = prefs[PreferencesKeys.DATE_FORMAT] ?: "d. MMM",
             timeFormatPattern = prefs[PreferencesKeys.TIME_FORMAT] ?: "HH:mm",
             ignoredCalendarIds = ignoredSet
         )

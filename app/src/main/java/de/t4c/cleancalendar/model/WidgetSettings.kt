@@ -22,10 +22,10 @@ data class WidgetSettings(
     val ignoredCalendarIds: Set<Long> = emptySet(),
 
     // Formatting & Enhancements
-    val showTodayTomorrow: Boolean = true,
-    val displayDateOnce: Boolean = true,
+    val showTodayTomorrow: Boolean = false,
+    val displayDateOnce: Boolean = false,
     val showEndTime: Boolean = false,
     val useCalendarColors: Boolean = false,
-    val dateFormatPattern: String = "EEE, d. MMM",
+    val dateFormatPattern: String = "d. MMM",
     val timeFormatPattern: String = "HH:mm"
 )

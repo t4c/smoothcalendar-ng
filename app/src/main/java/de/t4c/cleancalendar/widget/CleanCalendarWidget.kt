@@ -183,22 +183,16 @@ class CleanCalendarWidget : GlanceAppWidget() {
 
                     Spacer(modifier = GlanceModifier.width(8.dp))
 
-                    // Time Column
-                    if (timeLabel.isNotEmpty()) {
-                        Text(
-                            text = timeLabel,
-                            style = TextStyle(
-                                color = ColorProvider(rowTextColor.copy(alpha = 0.85f)),
-                                fontSize = (settings.fontSizeSp - 1).sp
-                            ),
-                            maxLines = 1
-                        )
-                        Spacer(modifier = GlanceModifier.width(8.dp))
+                    // Time Column (or Event Title inline with time)
+                    val fullTitle = if (timeLabel.isNotEmpty()) {
+                        "$timeLabel  ${event.title}"
+                    } else {
+                        event.title
                     }
 
                     // Event Title
                     Text(
-                        text = event.title,
+                        text = fullTitle,
                         style = TextStyle(
                             color = ColorProvider(rowTextColor),
                             fontSize = settings.fontSizeSp.sp

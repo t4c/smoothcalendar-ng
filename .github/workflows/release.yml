@@ -36,19 +36,19 @@ jobs:
       - name: Prepare APK Artifact
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/release/app-release.apk dist/CleanCalendar-v1.0.0.apk
+          cp app/build/outputs/apk/release/CleanCalendar.apk dist/CleanCalendar.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CleanCalendar-v1.0.0.apk
-          path: dist/CleanCalendar-v1.0.0.apk
+          name: CleanCalendar.apk
+          path: dist/CleanCalendar.apk
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/CleanCalendar-v1.0.0.apk
+          files: dist/CleanCalendar.apk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

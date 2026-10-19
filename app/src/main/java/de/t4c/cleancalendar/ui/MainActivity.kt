@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text("CleanCalendar Settings") },
+                            title = { Text("SmoothCalendar NG") },
                             actions = {
                                 Button(
                                     onClick = {

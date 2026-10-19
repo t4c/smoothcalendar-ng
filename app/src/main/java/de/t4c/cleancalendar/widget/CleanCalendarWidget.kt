@@ -57,10 +57,9 @@ class CleanCalendarWidget : GlanceAppWidget() {
             val bgColor = Color(settings.backgroundColorHex)
             val textColor = Color(settings.textColorHex)
 
-            // Open calendar app when clicking outside event rows
-            val openCalendarIntent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("content://com.android.calendar/time/${System.currentTimeMillis()}")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            // Configuration / Settings intent (launches settings when tapping widget background or header)
+            val openSettingsIntent = Intent(context, de.t4c.cleancalendar.ui.MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
 
             Box(
@@ -69,7 +68,7 @@ class CleanCalendarWidget : GlanceAppWidget() {
                     .background(bgColor)
                     .cornerRadius(16.dp)
                     .padding(settings.paddingDp.dp)
-                    .clickable(actionStartActivity(openCalendarIntent))
+                    .clickable(actionStartActivity(openSettingsIntent))
             ) {
                 if (events.isEmpty()) {
                     Box(
@@ -158,15 +157,15 @@ class CleanCalendarWidget : GlanceAppWidget() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
 
-                // Row for event: Table-like fixed-width columns
+                // Row for event: Table-like compact fixed-width columns
                 Row(
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .clickable(actionStartActivity(viewEventIntent)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 1. Date Column (Fixed width: 56dp for standard fonts, scales gracefully)
-                    val dateColWidth = (settings.fontSizeSp * 5.0).dp
+                    // 1. Date Column (Tight fit for "19 Okt")
+                    val dateColWidth = (settings.fontSizeSp * 3.8).dp
                     Box(
                         modifier = GlanceModifier.width(dateColWidth),
                         contentAlignment = Alignment.CenterStart
@@ -182,10 +181,10 @@ class CleanCalendarWidget : GlanceAppWidget() {
                         )
                     }
 
-                    Spacer(modifier = GlanceModifier.width(6.dp))
+                    Spacer(modifier = GlanceModifier.width(4.dp))
 
-                    // 2. Time Column (Fixed width: 44dp for "00:00")
-                    val timeColWidth = if (settings.showEndTime) (settings.fontSizeSp * 7.5).dp else (settings.fontSizeSp * 3.8).dp
+                    // 2. Time Column (Tight fit for "19:00")
+                    val timeColWidth = if (settings.showEndTime) (settings.fontSizeSp * 6.0).dp else (settings.fontSizeSp * 3.0).dp
                     Box(
                         modifier = GlanceModifier.width(timeColWidth),
                         contentAlignment = Alignment.CenterStart
@@ -202,7 +201,7 @@ class CleanCalendarWidget : GlanceAppWidget() {
                         }
                     }
 
-                    Spacer(modifier = GlanceModifier.width(8.dp))
+                    Spacer(modifier = GlanceModifier.width(4.dp))
 
                     // 3. Event Title Column (Fills remaining space)
                     Text(

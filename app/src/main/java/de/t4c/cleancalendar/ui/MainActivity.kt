@@ -17,6 +17,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,14 +28,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -48,7 +52,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.glance.appwidget.updateAll
@@ -118,14 +125,20 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
-                            .padding(16.dp)
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp, vertical = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
                         if (!hasPermission) {
-                            Card(modifier = Modifier.fillMaxWidth()) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                            ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("Calendar permission is required for CleanCalendar widget.")
+                                    Text(
+                                        "Calendar permission is required for CleanCalendar widget.",
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Button(onClick = {
                                         permissionLauncher.launch(Manifest.permission.READ_CALENDAR)
@@ -136,133 +149,155 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // Max items (Number Input)
-                        var maxItemsText by remember(settings.maxItems) { mutableStateOf(settings.maxItems.toString()) }
-                        SettingNumberInput(
-                            title = "Visible Events",
-                            subtitle = "Number of events to display (1 - 50)",
-                            value = maxItemsText,
-                            onValueChange = { input ->
-                                val filtered = input.filter { it.isDigit() }
-                                maxItemsText = filtered
-                                val parsed = filtered.toIntOrNull()
-                                if (parsed != null && parsed in 1..50) {
-                                    val updated = settings.copy(maxItems = parsed)
+                        // Section 1: Appearance & Typography
+                        SettingsSection(title = "Appearance") {
+                            var maxItemsText by remember(settings.maxItems) { mutableStateOf(settings.maxItems.toString()) }
+                            SettingNumberInput(
+                                title = "Visible Events",
+                                subtitle = "Maximum number of events shown (1 - 50)",
+                                value = maxItemsText,
+                                onValueChange = { input ->
+                                    val filtered = input.filter { it.isDigit() }
+                                    maxItemsText = filtered
+                                    val parsed = filtered.toIntOrNull()
+                                    if (parsed != null && parsed in 1..50) {
+                                        val updated = settings.copy(maxItems = parsed)
+                                        coroutineScope.launch {
+                                            settingsRepo.updateSettings(updated)
+                                            CleanCalendarWidget().updateAll(applicationContext)
+                                        }
+                                    }
+                                }
+                            )
+
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+
+                            var fontSizeText by remember(settings.fontSizeSp) { mutableStateOf(settings.fontSizeSp.toString()) }
+                            SettingNumberInput(
+                                title = "Font Size",
+                                subtitle = "Text size in sp (8 - 36)",
+                                value = fontSizeText,
+                                onValueChange = { input ->
+                                    val filtered = input.filter { it.isDigit() }
+                                    fontSizeText = filtered
+                                    val parsed = filtered.toIntOrNull()
+                                    if (parsed != null && parsed in 8..36) {
+                                        val updated = settings.copy(fontSizeSp = parsed)
+                                        coroutineScope.launch {
+                                            settingsRepo.updateSettings(updated)
+                                            CleanCalendarWidget().updateAll(applicationContext)
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        // Section 2: Display & Grouping
+                        SettingsSection(title = "Layout & Formatting") {
+                            SettingToggle(
+                                title = "Group by Date",
+                                subtitle = "Show date label only once for multiple events on the same day",
+                                checked = settings.displayDateOnce,
+                                onCheckedChange = { checked ->
+                                    val updated = settings.copy(displayDateOnce = checked)
                                     coroutineScope.launch {
                                         settingsRepo.updateSettings(updated)
                                         CleanCalendarWidget().updateAll(applicationContext)
                                     }
                                 }
-                            }
-                        )
+                            )
 
-                        // Font size (Number Input)
-                        var fontSizeText by remember(settings.fontSizeSp) { mutableStateOf(settings.fontSizeSp.toString()) }
-                        SettingNumberInput(
-                            title = "Font Size",
-                            subtitle = "Event text size in sp (8 - 36)",
-                            value = fontSizeText,
-                            onValueChange = { input ->
-                                val filtered = input.filter { it.isDigit() }
-                                fontSizeText = filtered
-                                val parsed = filtered.toIntOrNull()
-                                if (parsed != null && parsed in 8..36) {
-                                    val updated = settings.copy(fontSizeSp = parsed)
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+
+                            SettingToggle(
+                                title = "Show 'Today' / 'Tomorrow'",
+                                subtitle = "Replace date string with relative labels when applicable",
+                                checked = settings.showTodayTomorrow,
+                                onCheckedChange = { checked ->
+                                    val updated = settings.copy(showTodayTomorrow = checked)
                                     coroutineScope.launch {
                                         settingsRepo.updateSettings(updated)
                                         CleanCalendarWidget().updateAll(applicationContext)
                                     }
                                 }
-                            }
-                        )
+                            )
 
-                        HorizontalDivider()
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
 
-                        // Display Date Once (Grouping)
-                        SettingToggle(
-                            title = "Group by Date",
-                            subtitle = "Show date label only once for multiple events on the same day",
-                            checked = settings.displayDateOnce,
-                            onCheckedChange = { checked ->
-                                val updated = settings.copy(displayDateOnce = checked)
-                                coroutineScope.launch {
-                                    settingsRepo.updateSettings(updated)
-                                    CleanCalendarWidget().updateAll(applicationContext)
+                            SettingToggle(
+                                title = "Use Calendar Colors",
+                                subtitle = "Color event titles using individual calendar category colors",
+                                checked = settings.useCalendarColors,
+                                onCheckedChange = { checked ->
+                                    val updated = settings.copy(useCalendarColors = checked)
+                                    coroutineScope.launch {
+                                        settingsRepo.updateSettings(updated)
+                                        CleanCalendarWidget().updateAll(applicationContext)
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
 
-                        // Show Today / Tomorrow
-                        SettingToggle(
-                            title = "Show 'Today' / 'Tomorrow'",
-                            subtitle = "Replace date string with relative labels when applicable",
-                            checked = settings.showTodayTomorrow,
-                            onCheckedChange = { checked ->
-                                val updated = settings.copy(showTodayTomorrow = checked)
-                                coroutineScope.launch {
-                                    settingsRepo.updateSettings(updated)
-                                    CleanCalendarWidget().updateAll(applicationContext)
+                        // Section 3: Event Filters
+                        SettingsSection(title = "Event Filters") {
+                            SettingToggle(
+                                title = "Hide All-Day Events",
+                                subtitle = "Do not show events scheduled for the entire day",
+                                checked = settings.hideAllDay,
+                                onCheckedChange = { checked ->
+                                    val updated = settings.copy(hideAllDay = checked)
+                                    coroutineScope.launch {
+                                        settingsRepo.updateSettings(updated)
+                                        CleanCalendarWidget().updateAll(applicationContext)
+                                    }
                                 }
-                            }
-                        )
+                            )
 
-                        // Hide All-Day Events
-                        SettingToggle(
-                            title = "Hide All-Day Events",
-                            subtitle = "Do not show events scheduled for the entire day",
-                            checked = settings.hideAllDay,
-                            onCheckedChange = { checked ->
-                                val updated = settings.copy(hideAllDay = checked)
-                                coroutineScope.launch {
-                                    settingsRepo.updateSettings(updated)
-                                    CleanCalendarWidget().updateAll(applicationContext)
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+
+                            SettingToggle(
+                                title = "Hide Multi-Day Events",
+                                subtitle = "Filter out events spanning longer than 24 hours",
+                                checked = settings.hideMultiDay,
+                                onCheckedChange = { checked ->
+                                    val updated = settings.copy(hideMultiDay = checked)
+                                    coroutineScope.launch {
+                                        settingsRepo.updateSettings(updated)
+                                        CleanCalendarWidget().updateAll(applicationContext)
+                                    }
                                 }
-                            }
-                        )
+                            )
 
-                        // Hide Multi-Day Events
-                        SettingToggle(
-                            title = "Hide Multi-Day Events",
-                            subtitle = "Filter out events spanning longer than 24 hours",
-                            checked = settings.hideMultiDay,
-                            onCheckedChange = { checked ->
-                                val updated = settings.copy(hideMultiDay = checked)
-                                coroutineScope.launch {
-                                    settingsRepo.updateSettings(updated)
-                                    CleanCalendarWidget().updateAll(applicationContext)
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+
+                            SettingToggle(
+                                title = "Remove Past Events Immediately",
+                                subtitle = "Hide events right after their scheduled end time",
+                                checked = settings.removeOnEnd,
+                                onCheckedChange = { checked ->
+                                    val updated = settings.copy(removeOnEnd = checked)
+                                    coroutineScope.launch {
+                                        settingsRepo.updateSettings(updated)
+                                        CleanCalendarWidget().updateAll(applicationContext)
+                                    }
                                 }
-                            }
-                        )
-
-                        // Remove on end time
-                        SettingToggle(
-                            title = "Remove Past Events Immediately",
-                            subtitle = "Hide events right after their scheduled end time",
-                            checked = settings.removeOnEnd,
-                            onCheckedChange = { checked ->
-                                val updated = settings.copy(removeOnEnd = checked)
-                                coroutineScope.launch {
-                                    settingsRepo.updateSettings(updated)
-                                    CleanCalendarWidget().updateAll(applicationContext)
-                                }
-                            }
-                        )
-
-                        // Calendar colors
-                        SettingToggle(
-                            title = "Use Calendar Colors",
-                            subtitle = "Color event titles using individual calendar category colors",
-                            checked = settings.useCalendarColors,
-                            onCheckedChange = { checked ->
-                                val updated = settings.copy(useCalendarColors = checked)
-                                coroutineScope.launch {
-                                    settingsRepo.updateSettings(updated)
-                                    CleanCalendarWidget().updateAll(applicationContext)
-                                }
-                            }
-                        )
-
-                        HorizontalDivider()
+                            )
+                        }
 
                         // Add to Homescreen Button
                         val appWidgetManager = AppWidgetManager.getInstance(this@MainActivity)
@@ -272,13 +307,46 @@ class MainActivity : ComponentActivity() {
                                     val myProvider = ComponentName(this@MainActivity, CleanCalendarWidgetReceiver::class.java)
                                     appWidgetManager.requestPinAppWidget(myProvider, null, null)
                                 },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth().height(52.dp),
+                                shape = RoundedCornerShape(16.dp)
                             ) {
-                                Text("Add Widget to Homescreen")
+                                Text("Add Widget to Homescreen", style = MaterialTheme.typography.titleMedium)
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsSection(
+    title: String,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+            )
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+            ) {
+                content()
             }
         }
     }
@@ -292,21 +360,40 @@ fun SettingNumberInput(
     onValueChange: (String) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall)
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true,
-            modifier = Modifier.width(84.dp)
-        )
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.width(68.dp).height(44.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    textStyle = MaterialTheme.typography.titleMedium.copy(
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 }
 
@@ -318,13 +405,15 @@ fun SettingToggle(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall)
+        Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(
             checked = checked,

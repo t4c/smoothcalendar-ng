@@ -35,7 +35,8 @@ A modern, ultra-minimalist, transparent Android calendar widget built with **Jet
   * No network permissions (`INTERNET` permission is absent).
   * Zero ads, zero tracking, zero background battery waste.
 * **Material 3 Configuration App:**
-  * Fast, native Jetpack Compose configuration UI to tweak appearance, date formats, font sizes, and filters on the fly.
+  * Fast, native Jetpack Compose configuration UI to tweak appearance, numeric event limits, font sizes, date formats, and filters on the fly.
+  * Organic Material 3 grouped card hierarchy with native pill inputs matching system switches.
   * Instant preference synchronization powered by AndroidX DataStore.
 
 ---

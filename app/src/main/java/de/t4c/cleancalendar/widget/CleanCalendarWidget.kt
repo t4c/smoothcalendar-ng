@@ -157,61 +157,27 @@ class CleanCalendarWidget : GlanceAppWidget() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
 
-                // Row for event: Table-like compact fixed-width columns
+                // Single formatted text line per event: completely natural spacing, zero clipping
+                val eventLine = if (timeLabel.isNotEmpty()) {
+                    "$cleanDateLabel  $timeLabel  ${event.title}"
+                } else {
+                    "$cleanDateLabel  ${event.title}"
+                }
+
                 Row(
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .clickable(actionStartActivity(viewEventIntent)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 1. Date Column (Tight fit for "19 Okt")
-                    val dateColWidth = (settings.fontSizeSp * 3.8).dp
-                    Box(
-                        modifier = GlanceModifier.width(dateColWidth),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Text(
-                            text = cleanDateLabel,
-                            style = TextStyle(
-                                color = ColorProvider(rowTextColor),
-                                fontSize = settings.fontSizeSp.sp,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            maxLines = 1
-                        )
-                    }
-
-                    Spacer(modifier = GlanceModifier.width(4.dp))
-
-                    // 2. Time Column (Tight fit for "19:00")
-                    val timeColWidth = if (settings.showEndTime) (settings.fontSizeSp * 6.0).dp else (settings.fontSizeSp * 3.0).dp
-                    Box(
-                        modifier = GlanceModifier.width(timeColWidth),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        if (timeLabel.isNotEmpty()) {
-                            Text(
-                                text = timeLabel,
-                                style = TextStyle(
-                                    color = ColorProvider(rowTextColor),
-                                    fontSize = settings.fontSizeSp.sp
-                                ),
-                                maxLines = 1
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = GlanceModifier.width(4.dp))
-
-                    // 3. Event Title Column (Fills remaining space)
                     Text(
-                        text = event.title,
+                        text = eventLine,
                         style = TextStyle(
                             color = ColorProvider(rowTextColor),
                             fontSize = settings.fontSizeSp.sp
                         ),
                         maxLines = 1,
-                        modifier = GlanceModifier.defaultWeight()
+                        modifier = GlanceModifier.fillMaxWidth()
                     )
                 }
             }

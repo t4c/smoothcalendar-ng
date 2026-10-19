@@ -68,3 +68,11 @@ cd smoothcalendar-ng
 ## License
 
 SmoothCalendar NG is Free Software licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0-or-later)**. See the [LICENSE](LICENSE) file for the full license text.
+
+---
+
+## Support
+
+If you like this project, you can buy me a coffee:
+
+[![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=☕&slug=t4c2&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://buymeacoffee.com/t4c2)

@@ -157,11 +157,13 @@ class CleanCalendarWidget : GlanceAppWidget() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
 
-                // Single formatted text line per event: completely natural spacing, zero clipping
+                // Format line: if all-day event, insert visual whitespace matching the time label width + spacer
+                // "19:00" is 5 chars. Using figure spaces (\u2007) ensures monospaced digit-matching width on Android!
                 val eventLine = if (timeLabel.isNotEmpty()) {
                     "$cleanDateLabel  $timeLabel  ${event.title}"
                 } else {
-                    "$cleanDateLabel  ${event.title}"
+                    val timePadding = "\u2007".repeat(5)
+                    "$cleanDateLabel  $timePadding  ${event.title}"
                 }
 
                 Row(

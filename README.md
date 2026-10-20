@@ -13,7 +13,7 @@ A modern, ultra-minimalist, transparent Android calendar widget built with **Jet
 
 | Transparent Widget on Dark Wallpaper | In-App Configuration |
 | :---: | :---: |
-| <img src="docs/screenshots/widget_transparent_dark.png" width="360" alt="SmoothCalendar NG Widget Preview"/> | <img src="docs/screenshots/settings_screen.png" width="360" alt="SmoothCalendar NG Settings Preview"/> |
+| <img src="docs/screenshots/widget_transparent_dark.png" width="360" alt="SmoothCalendar NG Widget Preview"/> | <img src="docs/screenshots/settings.png" width="360" alt="SmoothCalendar NG Settings Preview"/> |
 
 ---
 

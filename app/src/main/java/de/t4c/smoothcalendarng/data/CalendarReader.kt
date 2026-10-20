@@ -1,11 +1,11 @@
-package de.t4c.cleancalendar.data
+package de.t4c.smoothcalendarng.data
 
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.provider.CalendarContract
-import de.t4c.cleancalendar.model.CalendarEvent
-import de.t4c.cleancalendar.model.WidgetSettings
+import de.t4c.smoothcalendarng.model.CalendarEvent
+import de.t4c.smoothcalendarng.model.WidgetSettings
 import java.util.concurrent.TimeUnit
 
 /**

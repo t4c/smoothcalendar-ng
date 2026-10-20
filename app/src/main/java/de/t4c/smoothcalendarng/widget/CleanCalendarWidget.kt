@@ -1,4 +1,4 @@
-package de.t4c.cleancalendar.widget
+package de.t4c.smoothcalendarng.widget
 
 import android.content.ContentUris
 import android.content.Context
@@ -30,11 +30,11 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import de.t4c.cleancalendar.R
-import de.t4c.cleancalendar.data.CalendarReader
-import de.t4c.cleancalendar.data.SettingsRepository
-import de.t4c.cleancalendar.model.CalendarEvent
-import de.t4c.cleancalendar.model.WidgetSettings
+import de.t4c.smoothcalendarng.R
+import de.t4c.smoothcalendarng.data.CalendarReader
+import de.t4c.smoothcalendarng.data.SettingsRepository
+import de.t4c.smoothcalendarng.model.CalendarEvent
+import de.t4c.smoothcalendarng.model.WidgetSettings
 import kotlinx.coroutines.flow.first
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -58,7 +58,7 @@ class CleanCalendarWidget : GlanceAppWidget() {
             val textColor = Color(settings.textColorHex)
 
             // Configuration / Settings intent (launches settings when tapping widget background or header)
-            val openSettingsIntent = Intent(context, de.t4c.cleancalendar.ui.MainActivity::class.java).apply {
+            val openSettingsIntent = Intent(context, de.t4c.smoothcalendarng.ui.MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
 

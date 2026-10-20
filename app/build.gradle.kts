@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "de.t4c.cleancalendar"
+    namespace = "de.t4c.smoothcalendarng"
     compileSdk = 35
 
     defaultConfig {

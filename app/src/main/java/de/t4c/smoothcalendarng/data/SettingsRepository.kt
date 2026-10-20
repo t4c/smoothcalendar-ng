@@ -1,4 +1,4 @@
-package de.t4c.cleancalendar.data
+package de.t4c.smoothcalendarng.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import de.t4c.cleancalendar.model.WidgetSettings
+import de.t4c.smoothcalendarng.model.WidgetSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

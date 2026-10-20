@@ -1,4 +1,4 @@
-package de.t4c.cleancalendar
+package de.t4c.smoothcalendarng
 
 import android.app.Application
 

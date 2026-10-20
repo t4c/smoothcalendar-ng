@@ -1,4 +1,4 @@
-package de.t4c.cleancalendar.model
+package de.t4c.smoothcalendarng.model
 
 /**
  * Clean data model representing a calendar event retrieved from the Android CalendarContract.

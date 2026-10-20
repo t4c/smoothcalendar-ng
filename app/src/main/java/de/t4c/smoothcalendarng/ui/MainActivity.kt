@@ -1,4 +1,4 @@
-package de.t4c.cleancalendar.ui
+package de.t4c.smoothcalendarng.ui
 
 import android.Manifest
 import android.appwidget.AppWidgetManager
@@ -6,8 +6,8 @@ import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
-import de.t4c.cleancalendar.BuildConfig
-import de.t4c.cleancalendar.widget.CleanCalendarWidgetReceiver
+import de.t4c.smoothcalendarng.BuildConfig
+import de.t4c.smoothcalendarng.widget.CleanCalendarWidgetReceiver
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -66,9 +66,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.glance.appwidget.updateAll
-import de.t4c.cleancalendar.data.SettingsRepository
-import de.t4c.cleancalendar.model.WidgetSettings
-import de.t4c.cleancalendar.widget.CleanCalendarWidget
+import de.t4c.smoothcalendarng.data.SettingsRepository
+import de.t4c.smoothcalendarng.model.WidgetSettings
+import de.t4c.smoothcalendarng.widget.CleanCalendarWidget
 import kotlinx.coroutines.launch
 
 /**

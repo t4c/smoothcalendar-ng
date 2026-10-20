@@ -1,4 +1,4 @@
-package de.t4c.cleancalendar.widget
+package de.t4c.smoothcalendarng.widget
 
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver

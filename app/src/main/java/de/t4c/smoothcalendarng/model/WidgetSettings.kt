@@ -1,4 +1,4 @@
-package de.t4c.cleancalendar.model
+package de.t4c.smoothcalendarng.model
 
 /**
  * Settings configuration for CleanCalendar widgets.

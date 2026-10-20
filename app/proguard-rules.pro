@@ -13,8 +13,8 @@
 -keep class * extends androidx.glance.appwidget.GlanceAppWidget { *; }
 
 # Keep App code, models, and UI
--keep class de.t4c.cleancalendar.** { *; }
--keepclassmembers class de.t4c.cleancalendar.** { *; }
+-keep class de.t4c.smoothcalendarng.** { *; }
+-keepclassmembers class de.t4c.smoothcalendarng.** { *; }
 
 # Keep RemoteViews & View layouts from resource shrinking
 -keep class android.widget.RemoteViews { *; }

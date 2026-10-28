@@ -1,0 +1,5 @@
+- Fixed permission prompt card naming SmoothCalendar NG correctly
+- Renamed color swatch "Salbei" to "Sage"
+- Fixed background color swatch naming and transparency labels
+- Added input validation and error feedback for visible events count (1-50)
+- Added manual placement instructions for launchers that do not support automatic widget pinning

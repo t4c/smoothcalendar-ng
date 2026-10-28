@@ -160,7 +160,7 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text(
-                                        "Calendar permission is required for CleanCalendar widget.",
+                                        "Calendar permission is required for SmoothCalendar NG widget.",
                                         color = MaterialTheme.colorScheme.onErrorContainer
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -180,7 +180,7 @@ class MainActivity : ComponentActivity() {
                                 "White" to 0xFFFFFFFFL,
                                 "Black" to 0xFF000000L,
                                 "Dark Gray" to 0xFF333333L,
-                                "Salbei" to 0xFFA7BEADL,
+                                "Sage" to 0xFFA7BEADL,
                                 "Gold" to 0xFFFFD54FL
                             )
                             SettingColorPicker(
@@ -205,14 +205,14 @@ class MainActivity : ComponentActivity() {
                             // Background Color Palette Picker (Top 5 presets + Custom)
                             val bgColorPresets = listOf(
                                 "Transparent" to 0x00000000L,
-                                "Black (30%)" to 0x4D000000L,
-                                "Black (60%)" to 0x99000000L,
-                                "White (30%)" to 0x4DFFFFFFL,
+                                "Dark 30%" to 0x4D000000L,
+                                "Dark 60%" to 0x99000000L,
+                                "Light 30%" to 0x4DFFFFFFL,
                                 "Solid Dark" to 0xFF1E1E1EL
                             )
                             SettingColorPicker(
                                 title = "Widget Background",
-                                subtitle = "Container background color and transparency",
+                                subtitle = "Container background color and transparency (Ø = transparent)",
                                 selectedColorHex = settings.backgroundColorHex,
                                 presets = bgColorPresets,
                                 allowAlpha = true,
@@ -231,20 +231,25 @@ class MainActivity : ComponentActivity() {
                             )
 
                             var maxItemsText by remember(settings.maxItems) { mutableStateOf(settings.maxItems.toString()) }
+                            var isMaxItemsError by remember { mutableStateOf(false) }
                             SettingNumberInput(
                                 title = "Visible Events",
-                                subtitle = "Maximum number of events shown (1 - 50)",
+                                subtitle = if (isMaxItemsError) "Please enter a number between 1 and 50" else "Maximum number of events shown (1 - 50)",
+                                isError = isMaxItemsError,
                                 value = maxItemsText,
                                 onValueChange = { input ->
                                     val filtered = input.filter { it.isDigit() }
                                     maxItemsText = filtered
                                     val parsed = filtered.toIntOrNull()
                                     if (parsed != null && parsed in 1..50) {
+                                        isMaxItemsError = false
                                         val updated = settings.copy(maxItems = parsed)
                                         coroutineScope.launch {
                                             settingsRepo.updateSettings(updated)
                                             CleanCalendarWidget().updateAll(applicationContext)
                                         }
+                                    } else {
+                                        isMaxItemsError = filtered.isNotEmpty()
                                     }
                                 }
                             )
@@ -417,17 +422,55 @@ class MainActivity : ComponentActivity() {
 
                         // Add to Homescreen Button
                         val appWidgetManager = AppWidgetManager.getInstance(this@MainActivity)
-                        if (appWidgetManager.isRequestPinAppWidgetSupported) {
-                            Button(
-                                onClick = {
+                        var showWidgetHelpDialog by remember { mutableStateOf(false) }
+
+                        Button(
+                            onClick = {
+                                if (appWidgetManager.isRequestPinAppWidgetSupported) {
                                     val myProvider = ComponentName(this@MainActivity, CleanCalendarWidgetReceiver::class.java)
-                                    appWidgetManager.requestPinAppWidget(myProvider, null, null)
+                                    val success = try {
+                                        appWidgetManager.requestPinAppWidget(myProvider, null, null)
+                                    } catch (e: Exception) {
+                                        false
+                                    }
+                                    if (success) {
+                                        android.widget.Toast.makeText(
+                                            applicationContext,
+                                            "Check your home screen or system prompt to place the widget",
+                                            android.widget.Toast.LENGTH_LONG
+                                        ).show()
+                                    } else {
+                                        showWidgetHelpDialog = true
+                                    }
+                                } else {
+                                    showWidgetHelpDialog = true
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().height(52.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Add Widget to Homescreen", style = MaterialTheme.typography.titleMedium)
+                        }
+
+                        if (showWidgetHelpDialog) {
+                            androidx.compose.material3.AlertDialog(
+                                onDismissRequest = { showWidgetHelpDialog = false },
+                                title = { Text("How to Add Widget") },
+                                text = {
+                                    Text(
+                                        "Your launcher (e.g. POCO / MIUI) does not allow apps to pin widgets automatically, or widget shortcuts are restricted in system settings.\n\n" +
+                                        "To add SmoothCalendar NG manually:\n" +
+                                        "1. Long press on any empty space on your home screen.\n" +
+                                        "2. Select 'Widgets'.\n" +
+                                        "3. Scroll to 'SmoothCalendar NG' and drag the widget to your home screen."
+                                    )
                                 },
-                                modifier = Modifier.fillMaxWidth().height(52.dp),
-                                shape = RoundedCornerShape(16.dp)
-                            ) {
-                                Text("Add Widget to Homescreen", style = MaterialTheme.typography.titleMedium)
-                            }
+                                confirmButton = {
+                                    Button(onClick = { showWidgetHelpDialog = false }) {
+                                        Text("Got it")
+                                    }
+                                }
+                            )
                         }
 
                         // Minimal About & Support Footer
@@ -516,6 +559,7 @@ fun SettingNumberInput(
     title: String,
     subtitle: String,
     value: String,
+    isError: Boolean = false,
     onValueChange: (String) -> Unit
 ) {
     Row(
@@ -527,11 +571,16 @@ fun SettingNumberInput(
     ) {
         Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
+            color = if (isError) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant,
+            border = if (isError) androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.error) else null,
             modifier = Modifier.width(68.dp).height(44.dp)
         ) {
             Box(
@@ -543,11 +592,11 @@ fun SettingNumberInput(
                     onValueChange = onValueChange,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    cursorBrush = SolidColor(if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary),
                     textStyle = MaterialTheme.typography.titleMedium.copy(
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -667,7 +716,7 @@ fun SettingColorPicker(
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = name.split(" ").first(),
+                        text = name,
                         style = MaterialTheme.typography.labelSmall,
                         maxLines = 1,
                         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant

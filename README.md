@@ -38,7 +38,10 @@ A modern, ultra-minimalist, transparent Android calendar widget built with **Jet
 
 ## Installation & Updates
 
-### Obtainium (Recommended)
+### Google Play Store (Recommended)
+The easiest way to install and keep SmoothCalendar NG up to date is via the [Google Play Store](https://play.google.com/store/apps/details?id=de.t4c.smoothcalendarng).
+
+### Obtainium
 SmoothCalendar NG works seamlessly with [Obtainium](https://github.com/ImranR98/Obtainium) for automatic background updates directly from GitHub Releases:
 1. Open **Obtainium** on your Android device.
 2. Tap **Add App** and paste: `https://github.com/t4c/smoothcalendar-ng`
